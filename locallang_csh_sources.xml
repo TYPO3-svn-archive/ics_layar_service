@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>CSH</type>
+		<description>Language labels for extension 'ics_layar_service', table 'tx_icslayarservice_sources'.</description>
+		<labelContext type="array">
+			<label index=".description">Table description</label>
+		</labelContext>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index=".description">Layar layer source content description.</label>
+			<label index=".details">Each records describes a layer. Layer data is retrieved from the specified table and fields.</label>
+			<label index="name.description">Contains the layer name used to uniquely identify this layer.</label>
+			<label index="name.details">The layer name is used by the Layar API to identify the source.</label>
+			<label index="source.description">Table used as provider for POI data.</label>
+			<label index="page.description">System folder where the POI data is placed.</label>
+			<label index="page.details">If no folder selected, all records from the database table are read.</label>
+			<label index="title.description">Field name containing the POI title.</label>
+			<label index="line2_ts.description">Typoscript used to generate the second line of POI details.</label>
+			<label index="line2_ts.details">The typoscript data is run in the context of the POI record and is an stdWrap element.</label>
+			<label index="line3_ts.description">Typoscript used to generate the third line of POI details.</label>
+			<label index="line3_ts.details">The typoscript data is run in the context of the POI record and is an stdWrap element.</label>
+			<label index="line4_ts.description">Typoscript used to generate the third line of POI details.</label>
+			<label index="line4_ts.details">The typoscript data is run in the context of the POI record and is an stdWrap element.</label>
+			<label index="attribution_ts.description">Typoscript used to generate the attribution line of POI details.</label>
+			<label index="attribution_ts.details">The typoscript data is run in the context of the POI record and is an stdWrap element.</label>
+			<label index="actions.description">Field name(s) containing the actions values. Names are separated by comma.</label>
+			<label index="actions.details">If only one fieldname is provided, the field contains the list of actions separated by line breaks. Otherwise each specified fields contain one action. At most four actions are read. Empty fields / lines are skipped. If the corresponding label is empty, the action is skipped.</label>
+			<label index="actions_label.description">Field name(s) containing the actions labels. Names are separated by comma.</label>
+			<label index="actions_label.details">If only one fieldname is provided, the field contains the list of actions labels seperated by line breaks. Otherwise each specified fields contain one action label. Each label is associated with its action by order.</label>
+			<label index="image.description">Field name providing a picture illustrating the POI.</label>
+			<label index="image.details">Url can be recognized as full URL, absolute URL, site root relative url, or uploaded file name.</label>
+			<label index="type.description">Field name containing the POI type or its value.</label>
+			<label index="type.details">The value can only be in the range 0 to 3 inclusives.</label>
+			<label index="coordinates.description">Field name(s) containing the coordinates. Names are separated by comma.</label>
+			<label index="coordinates.details">If only one field name, the field contains the lattitude and the longitude in degrees separated by a comma. If two field names, the first field is the lattitude in degrees and the second is longitude in degrees.</label>
+		</languageKey>
+	</data>
+	<orig_hash type="array">
+	</orig_hash>
+	<orig_text type="array">
+	</orig_text>
+</T3locallang>
