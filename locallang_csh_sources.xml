@@ -29,7 +29,7 @@
 			<label index="actions.details">If only one fieldname is provided, the field contains the list of actions separated by line breaks. Otherwise each specified fields contain one action. At most four actions are read. Empty fields / lines are skipped. If the corresponding label is empty, the action is skipped.</label>
 			<label index="actions_label.description">Field name(s) containing the actions labels. Names are separated by comma.</label>
 			<label index="actions_label.details">If only one fieldname is provided, the field contains the list of actions labels seperated by line breaks. Otherwise each specified fields contain one action label. Each label is associated with its action by order.</label>
-			<label index="image.description">Field name providing a picture illustrating the POI.</label>
+			<label index="image.description">Field name providing a picture illustrating the POI or the path to the picture.</label>
 			<label index="image.details">Url can be recognized as full URL, absolute URL, site root relative url, or uploaded file name.</label>
 			<label index="type.description">Field name containing the POI type or its value.</label>
 			<label index="type.details">The value can only be in the range 0 to 3 inclusives.</label>

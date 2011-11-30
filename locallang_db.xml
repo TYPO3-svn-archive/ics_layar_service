@@ -17,7 +17,7 @@
 			<label index="tx_icslayarservice_sources.attribution_ts">Typoscript for attribution</label>
 			<label index="tx_icslayarservice_sources.actions">Action field names</label>
 			<label index="tx_icslayarservice_sources.actions_label">Action label field names</label>
-			<label index="tx_icslayarservice_sources.image">Image field name</label>
+			<label index="tx_icslayarservice_sources.image">Image field name or path</label>
 			<label index="tx_icslayarservice_sources.type">Type field name or value</label>
 			<label index="tx_icslayarservice_sources.coordinates">Coordinates field name(s)</label>
 		</languageKey>

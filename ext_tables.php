@@ -23,5 +23,5 @@ $TCA['tx_icslayarservice_sources'] = array (
 	),
 );
 
-t3lib_extMgm::addLLrefForTCAdescr('tx_icslayarservice_sources', 'EXT:ics_layar_service/locallang_csh_sources.xml');
+t3lib_extMgm::addLLrefForTCAdescr('tx_icslayarservice_sources', 'EXT:' . $_EXTKEY . '/locallang_csh_sources.xml');
 ?>

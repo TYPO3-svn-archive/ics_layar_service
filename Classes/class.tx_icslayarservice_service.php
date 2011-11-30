@@ -22,12 +22,6 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-require_once(PATH_t3lib . 'class.t3lib_tstemplate.php');
-require_once(PATH_tslib . 'class.tslib_fe.php');
-require_once(PATH_tslib . 'class.tslib_content.php');
-require_once(t3lib_extMgm::extPath('ics_layar_service') . 'class.tx_icslayarservice_source.php');
-require_once(t3lib_extMgm::extPath('ics_layar_service') . 'class.tx_icslayarservice_pager.php');
-
 /**
  * Answer to a Layar query.
  *
@@ -47,6 +41,8 @@ class tx_icslayarservice_service
 		'lon' => 'longitude',
 		'radius' => 'range',
 		'pageKey' => 'pageKey',
+		'countryCode' => 'country',
+		'lang' => 'lang',
 	);
 
 	function init()

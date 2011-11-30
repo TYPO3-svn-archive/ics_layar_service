@@ -1,3 +1,12 @@
+
+2011-11-30 Pierrick Caillon <pierrick@in-cite.net>
+	* Feature: Image field support path.
+	* Refactoring: Moved not-extension-root files in subfolders.
+	* Dependency: Added dependency to TYPO3 4.3.
+
+2011-08-10 Pierrick Caillon <pierrick@in-cite.net>
+	* Import in forge.
+
 2009-10-29 In Cité Solution  <technique@in-cite.net>
 
 	* initial code generated with kickstarter

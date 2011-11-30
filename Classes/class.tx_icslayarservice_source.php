@@ -22,8 +22,6 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-require_once(t3lib_extMgm::extPath('ics_layar_service') . 'class.tx_icslayarservice_transformation.php');
-
 /**
  * Represents the Layar service content reader.
  *

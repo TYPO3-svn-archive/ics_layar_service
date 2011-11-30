@@ -89,6 +89,15 @@ class tx_icslayarservice_transformation
 			$poi['lat'] = round(floatval($coords[0]) * 1000000);
 			$poi['lon'] = round(floatval($coords[1]) * 1000000);
 		}
+		if (!empty($this->layer['image']))
+		{
+			if (preg_match('/^[A-Z0-9_-]+$/i', $this->layer['image']))
+				$image = $row[$this->layer['image']];
+			else
+				$image = $this->layer['image'];
+			// TODO: parse image url
+		}
+		// TODO: The other fields
 		$poi['distance'] = round(6378.137 * acos(cos(deg2rad($row['center_lat'])) * cos(deg2rad($poi['lat'])) * cos(deg2rad($row['center_lon']) - deg2rad($poi['lon'])) + sin(deg2rad($row['center_lat'])) * sin(deg2rad($poi['lat']))));
 		return $poi;
 	}
