@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 In Cité Solution <technique@in-cite.net>
+*  (c) 2009-2011 In Cité Solution <technique@in-cite.net>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -21,6 +21,9 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
+/*
+ * $Id$
+ */
 
 /**
  * Answer to a Layar query.
@@ -29,8 +32,8 @@
  * @package	TYPO3
  * @subpackage	ics_layar_service
  */
-class tx_icslayarservice_service
-{
+class tx_icslayarservice_service {
+
 	var $params = array(
 		'layerName' => 'layer',
 		'userID' => 'user',
@@ -45,17 +48,25 @@ class tx_icslayarservice_service
 		'lang' => 'lang',
 	);
 
-	function init()
-	{
-		$this->feUserObj = tslib_eidtools::initFeUser(); // Initialize FE user object     
+	/**
+	 * Initializes the service.
+	 *
+	 */
+	public function init() {
+		$this->feUserObj = tslib_eidtools::initFeUser(); // Initialize FE user object
 		tslib_eidtools::connectDB(); //Connect to database
 		tslib_fe::includeTCA();
-		foreach ($this->params as $get => $var)
+		foreach ($this->params as $get => $var) {
 			$this->$var = t3lib_div::_GET($get);
+		}
 	}
 
-	function main()
-	{
+	/**
+	 * Entry point of the service.
+	 *
+	 * @return string The output content.
+	 */
+	public function main() {
 		$result = array(
 			'nextPageKey' => '',
 			'morePages' => false,
@@ -65,48 +76,40 @@ class tx_icslayarservice_service
 			'errorString' => 'ok',
 		);
 		// Ask next page use case.
-		if (!empty($this->pageKey))
-		{
+		if (!empty($this->pageKey)) {
 			$pager = t3lib_div::makeInstance('tx_icslayarservice_pager');
-			if ($pager->load($this->pageKey))
-			{
+			if ($pager->load($this->pageKey)) {
 				// Valid pageKey.
 				$result['hotspots'] = $pager->getPage();
 				$result['nextPageKey'] = $pager->getKey();
 				$result['morePages'] = $result['nextPageKey'] != '';
 			}
-			else
-			{
+			else {
 				// Unknown pageKey.
 				$result['errorCode'] = 29;
 				$result['errorString'] = 'Page key invalid';
 			}
 		}
 		// Ask layer data use case.
-		else
-		{
+		else {
 			$source = t3lib_div::makeInstance('tx_icslayarservice_source');
 			$source->init();
-			if ($source->loadLayer($this->layer))
-			{
+			if ($source->loadLayer($this->layer)) {
 				// Valid layer.
 				$source->setFilter($this->latitude, $this->longitude, $this->range);
 				$pois = $source->getPOIs();
-				if (!empty($pois))
-				{
+				if (!empty($pois)) {
 					$pager = t3lib_div::makeInstance('tx_icslayarservice_pager');
 					$pager->start($pois);
 					$result['hotspots'] = $pager->getPage();
 					$result['nextPageKey'] = $pager->getKey();
 					$result['morePages'] = $result['nextPageKey'] != '';
 				}
-				else
-				{
+				else {
 					// Empty result. Do nothing.
 				}
 			}
-			else
-			{
+			else {
 				// Unknown layer.
 				$result['errorCode'] = 20;
 				$result['errorString'] = 'The layer name is not known.';
@@ -115,9 +118,13 @@ class tx_icslayarservice_service
 		$content = json_encode($result/*, JSON_HEX_TAG*/);
 		return $content;
 	}
-	
-	function printOutput($output)
-	{
+
+	/**
+	 * Prints the content.
+	 *
+	 * @param string $output Content to write.
+	 */
+	public function printOutput($output) {
 		global $TYPO3_CONF_VARS;
 		header('Content-Type: application/json; charset=' . (($TYPO3_CONF_VARS['BE']['forceCharset']) ? ($TYPO3_CONF_VARS['BE']['forceCharset']) : ('iso-8859-1')));
 		header('Content-Length: ' . strlen($output));
@@ -125,6 +132,6 @@ class tx_icslayarservice_service
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_service.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_service.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_service.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_service.php']);
 }

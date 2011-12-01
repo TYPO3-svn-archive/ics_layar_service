@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 In Cité Solution <technique@in-cite.net>
+*  (c) 2009-2011 In Cité Solution <technique@in-cite.net>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -21,6 +21,9 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
+/*
+ * $Id$
+ */
 
 /**
  * Represents the Layar service content transformer from database to POI.
@@ -31,21 +34,25 @@
  */
 class tx_icslayarservice_transformation
 {
-	function init($layerDef)
-	{
+	/**
+	 * Initializes transformation process.
+	 *
+	 * @param array $row: Layer definition.
+	 */
+	public function init(array $layerDef) {
 		$this->layer = $layerDef;
 		$this->type = 0;
-		if (!empty($layerDef['type']))
-		{
-			if (is_numeric($layerDef['type']))
+		if (!empty($layerDef['type'])) {
+			if (is_numeric($layerDef['type'])) {
 				$this->type = intval($layerDef['type']);
-			else
+			}
+			else {
 				$this->type = $layerDef['type'];
+			}
 		}
 		$coords = $layerDef['coordinates'];
 		$coords = t3lib_div::trimExplode(',', $coords, true);
-		switch (count($coords))
-		{
+		switch (count($coords)) {
 			case 1:
 				$this->coords = $layerDef['coordinates'];
 				break;
@@ -54,8 +61,14 @@ class tx_icslayarservice_transformation
 				break;
 		}
 	}
-	
-	function transformPOI($row)
+
+	/**
+	 * Transforms a POI record according to the layer definition.
+	 *
+	 * @param array $row The POI record to transform.
+	 * @return array The POI structure ready to send to client.
+	 */
+	public function transformPOI(array $row)
 	{
 		$poi = array(
 			'actions' => array(),
@@ -103,6 +116,6 @@ class tx_icslayarservice_transformation
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_transformation.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_transformation.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_transformation.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_transformation.php']);
 }

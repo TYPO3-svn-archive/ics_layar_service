@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 In Cité Solution <technique@in-cite.net>
+*  (c) 2009-2011 In Cité Solution <technique@in-cite.net>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -21,6 +21,9 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
+/*
+ * $Id$
+ */
 
 define('LAYAR_POI_NEEDPAGE_COUNT', 15);	// Above this count, paging is required.
 define('LAYAR_POI_BYPAGE', 10);	// Number of POI per page if paging.
@@ -33,67 +36,67 @@ define('LAYAR_SESSION_NAME', 'T3_layar_pager');
  * @package	TYPO3
  * @subpackage	ics_layar_service
  */
-class tx_icslayarservice_pager
-{
-	var $pois;
-	var $pageKey;
-	
-	function start($pois)
-	{
+class tx_icslayarservice_pager {
+	private $pois;
+	private $pageKey;
+
+	/**
+	 * Starts paging from a complete result set.
+	 *
+	 * @param array $pois The complete result set to page.
+	 */
+	public function start(array $pois) {
 		$this->pois = $pois;
-		if (count($pois) > LAYAR_POI_NEEDPAGE_COUNT)
-		{
+		if (count($pois) > LAYAR_POI_NEEDPAGE_COUNT) {
 			$oldsessionid = session_id($this->pageKey = uniqid(''));
 			$oldsessionname = session_name(LAYAR_SESSION_NAME);
 			$pages = array(array());
 			$currentPage = 0;
-			while (!empty($pois))
-			{
+			while (!empty($pois)) {
 				if (count($pages[$currentPage]) == LAYAR_POI_BYPAGE)
 					$pages[++$currentPage] = array();
 				$pages[$currentPage][] = array_shift($pois);
 			}
-			if (session_start())
-			{
+			if (session_start()) {
 				$this->pois = array_shift($pages);
 				$_SESSION['pages'] = $pages;
 				session_write_close();
 			}
-			else
+			else {
 				$this->pageKey = null;
+			}
 			session_id($oldsessionid);
 			session_name($oldsessionname);
 		}
 	}
-	
-	function load($pageKey)
-	{
+
+	/**
+	 * Opens the specified result page.
+	 *
+	 * @param string $pageKey The page to load.
+	 * @return boolean Success of the operation. <code>true</code> if successfull.
+	 */
+	public function load($pageKey) {
 		$result = true;
 		$oldsessionid = session_id($pageKey);
 		$oldsessionname = session_name(LAYAR_SESSION_NAME);
-		if (session_start())
-		{
+		if (session_start()) {
 			$pages = $_SESSION['pages'];
 			session_destroy();
 		}
-		else
-		{
+		else {
 			$pages = array();
 			$result = false;
 		}
-		if (!empty($pages))
-		{
+		if (!empty($pages)) {
 			$this->pois = array_shift($pages);
-			if (!empty($pages))
-			{
+			if (!empty($pages)) {
 				session_id($this->pageKey = uniqid(''));
-				if (session_start())
-				{
+				if (session_start()) {
 					$_SESSION['pages'] = $pages;
 					session_write_close();
 				}
-				else
-				{
+				else {
 					$this->pois = array();
 					$this->pageKey = null;
 					$result = false;
@@ -104,18 +107,26 @@ class tx_icslayarservice_pager
 		session_name($oldsessionname);
 		return $result;
 	}
-	
-	function getPage()
-	{
+
+	/**
+	 * Obtains the current page data.
+	 *
+	 * @return array The page data array.
+	 */
+	public function getPage() {
 		return $this->pois;
 	}
-	
-	function getKey()
-	{
+
+	/**
+	 * Obtains the current page key.
+	 *
+	 * @return string The page key.
+	 */
+	public function getKey() {
 		return $this->pageKey;
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_pager.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_pager.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_pager.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_pager.php']);
 }

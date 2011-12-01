@@ -1,4 +1,8 @@
 
+2011-12-01 Pierrick Caillon <pierrick@in-cite.net>
+	* Refactoring: Added $Id comments for SVN version.
+	* Refactoring: Added phpdoc.
+
 2011-11-30 Pierrick Caillon <pierrick@in-cite.net>
 	* Feature: Image field support path.
 	* Refactoring: Moved not-extension-root files in subfolders.

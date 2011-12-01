@@ -21,6 +21,9 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
+/*
+ * $Id$
+ */
 
 $fob = t3lib_div::makeInstance('tx_icslayarservice_service');
 $fob->init();

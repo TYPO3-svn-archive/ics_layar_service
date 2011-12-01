@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 In Cité Solution <technique@in-cite.net>
+*  (c) 2009-2011 In Cité Solution <technique@in-cite.net>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -21,6 +21,9 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
+/*
+ * $Id$
+ */
 
 /**
  * Represents the Layar service content reader.
@@ -29,23 +32,33 @@
  * @package	TYPO3
  * @subpackage	ics_layar_service
  */
-class tx_icslayarservice_source
-{
-	function init()
-	{
+class tx_icslayarservice_source {
+	/**
+	 * Initializes the source. Nothing to do.
+	 *
+	 */
+	public function init() {
 	}
-	
-	function loadLayer($layer)
-	{
+
+	/**
+	 * Loads a layer definition from name.
+	 *
+	 * @param string $layer The name of the layer to load.
+	 * @return boolean The success of the operation.
+	 */
+	public function loadLayer($layer) {
 		global $TYPO3_DB, $TCA;
 		t3lib_div::loadTCA('tx_icslayarservice_sources');
 		$lang = t3lib_div::_GET('L');
-		if (empty($lang) || !is_numeric($lang))
+		if (empty($lang) || !is_numeric($lang)) {
 			$lang = '0';
-		if (!$lang)
+		}
+		if (!$lang) {
 			$language = '-1,0';
-		else
+		}
+		else {
 			$language = '-1,0,' . $lang;
+		}
 		$rows = $TYPO3_DB->exec_SELECTgetRows(
 			'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
 			'`tx_icslayarservice_sources`',
@@ -57,10 +70,8 @@ class tx_icslayarservice_source
 			'',
 			'sys_language_uid'
 		);
-		if (!empty($rows))
-		{
-			if (isset($rows[$lang]))
-			{
+		if (!empty($rows)) {
+			if (isset($rows[$lang])) {
 				$this->layer = $rows[$lang];
 				$rows = $TYPO3_DB->exec_SELECTgetRows(
 					'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
@@ -71,10 +82,8 @@ class tx_icslayarservice_source
 					'',
 					'1'
 				);
-				if (!empty($rows))
-				{
-					foreach ($rows[0] as $field => $value)
-					{
+				if (!empty($rows)) {
+					foreach ($rows[0] as $field => $value) {
 						$mode = $TCA['tx_icslayarservice_sources']['columns'][$field]['l10n_mode'];
 						if (($mode != 'exclude') &&
 							(($mode != 'mergeIfNotBlank') || strcmp(trim($this->layer[$field]), '')))
@@ -83,12 +92,13 @@ class tx_icslayarservice_source
 					$this->layer = $rows[0];
 				}
 			}
-			elseif (isset($rows['-1']))
+			elseif (isset($rows['-1'])) {
 				$this->layer = $rows['-1'];
-			else
+			}
+			else {
 				$this->layer = $rows['0'];
-			if (($this->layer['sys_language_uid'] <= 0) && ($lang > 0))
-			{
+			}
+			if (($this->layer['sys_language_uid'] <= 0) && ($lang > 0)) {
 				$rows = $TYPO3_DB->exec_SELECTgetRows(
 					'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
 					'`tx_icslayarservice_sources`',
@@ -99,10 +109,8 @@ class tx_icslayarservice_source
 					'',
 					'1'
 				);
-				if (!empty($rows))
-				{
-					foreach ($this->layer as $field => $value)
-					{
+				if (!empty($rows)) {
+					foreach ($this->layer as $field => $value) {
 						$mode = $TCA['tx_icslayarservice_sources']['columns'][$field]['l10n_mode'];
 						if (($mode != 'exclude') &&
 							(($mode != 'mergeIfNotBlank') || strcmp(trim($rows[0][$field]), '')))
@@ -111,36 +119,44 @@ class tx_icslayarservice_source
 				}
 			}
 		}
-		if ($this->layer)
-		{
-			foreach ($TCA['tx_icslayarservice_sources']['columns'] as $field => $conf)
-			{
-				$required = ($conf['config']['minitems'] > 0) || 
+		if ($this->layer) {
+			foreach ($TCA['tx_icslayarservice_sources']['columns'] as $field => $conf) {
+				$required = ($conf['config']['minitems'] > 0) ||
 					(in_array('required', t3lib_div::trimExplode(',', $conf['config']['eval'], true)));
-				if ($required && !strcmp($this->layer[$field], ''))
+				if ($required && !strcmp($this->layer[$field], '')) {
 					return false;
+				}
 			}
 			return true;
 		}
 		return false;
 	}
-	
-	function setFilter($latitude, $longitude, $range)
-	{
+
+	/**
+	 * Defines the standard filters.
+	 *
+	 * @param float $latitude Request center latitude (degres).
+	 * @param float $longitude Request center longitude (degres).
+	 * @param float $range Search range (in meters).
+	 */
+	public function setFilter($latitude, $longitude, $range) {
 		$this->latitude = floatval($latitude);
 		$this->longitude = floatval($longitude);
 		$this->range = intval($range);
 	}
-	
-	function getPOIs()
-	{
+
+	/**
+	 * Retrieves and transforms for output the POIs.
+	 *
+	 * @return array All the requested POIs.
+	 */
+	public function getPOIs() {
 		$table = $this->layer['source'];
 		$pid = $this->layer['page'];
 		$coords = $this->layer['coordinates'];
 		$coords = t3lib_div::trimExplode(',', $coords, true);
 		$coordAccess = array();
-		switch (count($coords))
-		{
+		switch (count($coords)) {
 			case 1:
 				// TODO: Case when the coordinates are in the same field.
 				break;
@@ -161,17 +177,19 @@ class tx_icslayarservice_source
 			// TODO: Use cObj->enableFields.
 			(($pid) ? ('pid = ' . $pid . ' AND ') : ('')) . $box . ' AND hidden = 0 AND deleted = 0'
 		);
-		if (empty($rows))
+		if (empty($rows)) {
 			return array();
+		}
 		$transformation = t3lib_div::makeInstance('tx_icslayarservice_transformation');
 		$transformation->init($this->layer);
 		$pois = array();
-		foreach ($rows as $row)
+		foreach ($rows as $row) {
 			$pois[] = $transformation->transformPOI($row);
+		}
 		return $pois;
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_source.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/class.tx_icslayarservice_source.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_source.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/ics_layar_service/Classes/class.tx_icslayarservice_source.php']);
 }
