@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2011 In Cité Solution <technique@in-cite.net>
+*  (c) 2009-2011 In CitÃ© Solution <technique@in-cite.net>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -33,8 +33,9 @@
  * @subpackage	ics_layar_service
  */
 class tx_icslayarservice_service {
-
-	var $params = array(
+	private $settings;
+	
+	private static $params = array(
 		'layerName' => 'layer',
 		'userID' => 'user',
 		'developerId' => 'dev',
@@ -50,15 +51,40 @@ class tx_icslayarservice_service {
 
 	/**
 	 * Initializes the service.
+	 * Simulates a partial frontend context for TypoScript parsing.
 	 *
+	 * @return void
 	 */
 	public function init() {
-		$this->feUserObj = tslib_eidtools::initFeUser(); // Initialize FE user object
-		tslib_eidtools::connectDB(); //Connect to database
-		tslib_fe::includeTCA();
-		foreach ($this->params as $get => $var) {
-			$this->$var = t3lib_div::_GET($get);
+		$this->settings = array();
+		foreach ($self::$params as $get => $var) {
+			$this->settings[$var] = t3lib_div::_GET($get);
 		}
+
+		$TSFE = t3lib_div::makeInstance('tslib_fe', $GLOBALS['TYPO3_CONF_VARS'], 0, 0);
+		$GLOBALS['TSFE'] = $TSFE;
+		$TSFE->connectToDB();
+		$TSFE->initFEuser();
+		$TSFE->getCompressedTCarray();
+		$TSFE->sys_page = t3lib_div::makeInstance('t3lib_pageSelect');
+		$TSFE->sys_page->init(false);
+		$TSFE->initTemplate();
+		$TSFE->lang = $this->settings['lang'] ? strtolower($this->settings['lang']) : 'default';
+		$TSFE->renderCharset = $this->csConvObj->parse_charset($GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] ? $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] : $TSFE->defaultCharSet);
+		$TSFE->metaCharset = $this->renderCharset;
+	}
+	
+	/**
+	 * Obtains the value of an attribute.
+	 *
+	 * @param string $name Attribute name.
+	 * @return string The attribute's value.
+	 */
+	public function __get($name) {
+		if (isset($this->settings[$name])) {
+			return $this->settings[$name];
+		}
+		return '';
 	}
 
 	/**
@@ -120,9 +146,10 @@ class tx_icslayarservice_service {
 	}
 
 	/**
-	 * Prints the content.
+	 * Prints the given JSon content.
 	 *
 	 * @param string $output Content to write.
+	 * @return void
 	 */
 	public function printOutput($output) {
 		global $TYPO3_CONF_VARS;

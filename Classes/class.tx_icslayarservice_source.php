@@ -36,8 +36,10 @@ class tx_icslayarservice_source {
 	/**
 	 * Initializes the source. Nothing to do.
 	 *
+	 * @return void
 	 */
 	public function init() {
+		$GLOBALS['TSFE'] = new stdClass();
 	}
 
 	/**
@@ -47,23 +49,18 @@ class tx_icslayarservice_source {
 	 * @return boolean The success of the operation.
 	 */
 	public function loadLayer($layer) {
-		global $TYPO3_DB, $TCA;
+		global $TCA;
 		t3lib_div::loadTCA('tx_icslayarservice_sources');
 		$lang = t3lib_div::_GET('L');
 		if (empty($lang) || !is_numeric($lang)) {
 			$lang = '0';
 		}
-		if (!$lang) {
-			$language = '-1,0';
-		}
-		else {
-			$language = '-1,0,' . $lang;
-		}
+		// TODO: Change language overlay computation.
 		$rows = $TYPO3_DB->exec_SELECTgetRows(
 			'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
 			'`tx_icslayarservice_sources`',
 			'`name` = ' . $TYPO3_DB->fullQuoteStr($layer, 'tx_icslayarservice_sources') . ' ' .
-			'AND `sys_language_uid` IN (' . $language . ') ' .
+			'AND `sys_language_uid` IN (-1, 0) ' .
 			'AND `hidden` = 0 AND `deleted` = 0',
 			'',
 			'',
@@ -135,9 +132,10 @@ class tx_icslayarservice_source {
 	/**
 	 * Defines the standard filters.
 	 *
-	 * @param float $latitude Request center latitude (degres).
-	 * @param float $longitude Request center longitude (degres).
-	 * @param float $range Search range (in meters).
+	 * @param double $latitude Request center latitude (degres).
+	 * @param double $longitude Request center longitude (degres).
+	 * @param double $range Search range (in meters).
+	 * @return void
 	 */
 	public function setFilter($latitude, $longitude, $range) {
 		$this->latitude = floatval($latitude);

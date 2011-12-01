@@ -34,10 +34,16 @@
  */
 class tx_icslayarservice_transformation
 {
+	private $layer;
+	private $type;
+	private $coords;
+	private $setup;
+	
 	/**
 	 * Initializes transformation process.
 	 *
 	 * @param array $row: Layer definition.
+	 * @return void
 	 */
 	public function init(array $layerDef) {
 		$this->layer = $layerDef;
@@ -60,6 +66,7 @@ class tx_icslayarservice_transformation
 				$this->coords = $coords;
 				break;
 		}
+		// TODO: Initialize TS fields.
 	}
 
 	/**

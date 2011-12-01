@@ -2,6 +2,10 @@
 2011-12-01 Pierrick Caillon <pierrick@in-cite.net>
 	* Refactoring: Added $Id comments for SVN version.
 	* Refactoring: Added phpdoc.
+	* Refactoring: Added visibility on methods.
+	* Refactoring: Added class attributes with visibility.
+	* Dependency: Added dependency to PHP 5.2.
+	* Feature: Simulate partial frontend context for tslib_cObj usage.
 
 2011-11-30 Pierrick Caillon <pierrick@in-cite.net>
 	* Feature: Image field support path.

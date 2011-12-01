@@ -44,6 +44,7 @@ class tx_icslayarservice_pager {
 	 * Starts paging from a complete result set.
 	 *
 	 * @param array $pois The complete result set to page.
+	 * @return void
 	 */
 	public function start(array $pois) {
 		$this->pois = $pois;
