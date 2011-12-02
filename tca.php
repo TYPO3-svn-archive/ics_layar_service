@@ -7,7 +7,7 @@ if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 $TCA['tx_icslayarservice_sources'] = array (
 	'ctrl' => $TCA['tx_icslayarservice_sources']['ctrl'],
 	'interface' => array (
-		'showRecordFieldList' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,name,source,page,title,line2_ts,line3_ts,line4_ts,attribution_ts,actions,actions_label,image,type,coordinates'
+		'showRecordFieldList' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,name,source,page,title,line2_ts,line3_ts,line4_ts,attribution_ts,actions_ts,actions_label_ts,image,type,coordinates'
 	),
 	'feInterface' => $TCA['tx_icslayarservice_sources']['feInterface'],
 	'columns' => array (
@@ -152,25 +152,29 @@ $TCA['tx_icslayarservice_sources'] = array (
 			'l10n_mode' => 'mergeIfNotBlank',
 			'l10n_cat' => 'text',
 		),
-		'actions' => array (		
+		'actions_ts' => array (		
 			'exclude' => 0,		
-			'label' => 'LLL:EXT:ics_layar_service/locallang_db.xml:tx_icslayarservice_sources.actions',		
+			'label' => 'LLL:EXT:ics_layar_service/locallang_db.xml:tx_icslayarservice_sources.actions_ts',		
 			'config' => array (
-				'type' => 'input',	
-				'size' => '30',
+				'type' => 'text',
+				'wrap' => 'OFF',
+				'cols' => '48',	
+				'rows' => '5',
 			),
-			'l10n_mode' => 'exclude',
-			'l10n_display' => 'defaultAsReadonly',
+			'l10n_mode' => 'mergeIfNotBlank',
+			'l10n_cat' => 'text',
 		),
-		'actions_label' => array (		
+		'actions_label_ts' => array (		
 			'exclude' => 0,		
-			'label' => 'LLL:EXT:ics_layar_service/locallang_db.xml:tx_icslayarservice_sources.actions_label',		
+			'label' => 'LLL:EXT:ics_layar_service/locallang_db.xml:tx_icslayarservice_sources.actions_label_ts',		
 			'config' => array (
-				'type' => 'input',	
-				'size' => '30',
+				'type' => 'text',
+				'wrap' => 'OFF',
+				'cols' => '48',	
+				'rows' => '5',
 			),
-			'l10n_mode' => 'exclude',
-			'l10n_display' => 'defaultAsReadonly',
+			'l10n_mode' => 'mergeIfNotBlank',
+			'l10n_cat' => 'text',
 		),
 		'image' => array (		
 			'exclude' => 0,		
@@ -207,7 +211,7 @@ $TCA['tx_icslayarservice_sources'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, source, page, title;;;;2-2-2, line2_ts;;;;3-3-3, line3_ts, line4_ts, attribution_ts, actions, actions_label, image, type, coordinates')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, source, page, --div--;LLL:EXT:ics_layar_service/locallang_db.xml:div.BIW, title;;;;2-2-2, line2_ts;;;;3-3-3, line3_ts, line4_ts, attribution_ts, image, --div--;LLL:EXT:ics_layar_service/locallang_db.xml:div.CIW, type, coordinates, --div--;LLL:EXT:ics_layar_service/locallang_db.xml:div.actions, actions_ts, actions_label_ts')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')

@@ -34,6 +34,7 @@
  */
 class tx_icslayarservice_transformation
 {
+	private static $tsFields = array('line2', 'line3', 'line4', 'attribution', 'actions', 'actions_label');
 	private $layer;
 	private $type;
 	private $coords;
@@ -42,10 +43,10 @@ class tx_icslayarservice_transformation
 	/**
 	 * Initializes transformation process.
 	 *
-	 * @param array $row: Layer definition.
+	 * @param array $layerDef Layer definition.
 	 * @return void
 	 */
-	public function init(array $layerDef) {
+	public function __construct(array $layerDef) {
 		$this->layer = $layerDef;
 		$this->type = 0;
 		if (!empty($layerDef['type'])) {
@@ -66,7 +67,11 @@ class tx_icslayarservice_transformation
 				$this->coords = $coords;
 				break;
 		}
-		// TODO: Initialize TS fields.
+		foreach (self::$tsFields as $field) {
+			$parser = t3lib_div::makeInstance('t3lib_TSparser');
+			$parser->parse($layerDef[$field . '_ts']);
+			$this->setup[$field] = $parser->setup;
+		}
 	}
 
 	/**
@@ -78,20 +83,30 @@ class tx_icslayarservice_transformation
 	public function transformPOI(array $row)
 	{
 		$poi = array(
-			'actions' => array(),
-			'attribution' => null,
-			'distance' => null,
 			'id' => null,
-			'imageURL' => null,
-			'lat' => null,
-			'lon' => null,
-			'line2' => null,
-			'line3' => null,
-			'line4' => null,
+			'distance' => null,
 			'title' => null,
 			'type' => null,
+			'lat' => null,
+			'lon' => null,
+			'actions' => array(),
 		);
-		$poi['id'] = md5($this->layer['table'] . $row['crdate'] . $row['uid']);
+		$this->setRequiredFields($row, $poi);
+		$generated = $this->computesTSFields($row);
+		$this->setActions($row, $poi, $generated);
+		$this->setOptionalFields($row, $poi, $generated);
+		return $poi;
+	}
+	
+	/**
+	 * Defines the value of the required fields for the POI.
+	 *
+	 * @param array $row The POI record to transform.
+	 * @param array &$poi The output POI definition.
+	 * @return void
+	 */
+	protected function setRequiredFields(array $row, array &$poi) {
+		$poi['id'] = md5($this->layer['source'] . $row['crdate'] . $row['uid']);
 		if (!empty($this->layer['title']) && isset($row[$this->layer['title']]))
 			$poi['title'] = $row[$this->layer['title']];
 		if (is_string($this->type))
@@ -109,17 +124,95 @@ class tx_icslayarservice_transformation
 			$poi['lat'] = round(floatval($coords[0]) * 1000000);
 			$poi['lon'] = round(floatval($coords[1]) * 1000000);
 		}
+		$poi['distance'] = round(6378.137 * acos(cos(deg2rad($row['center_lat'])) * cos(deg2rad($poi['lat'])) * cos(deg2rad($row['center_lon']) - deg2rad($poi['lon'])) + sin(deg2rad($row['center_lat'])) * sin(deg2rad($poi['lat']))));
+	}
+	
+	/**
+	 * Computes the value of the layer fields defined with TypoScript.
+	 *
+	 * @param array $row The POI record to transform.
+	 * @return void
+	 */
+	protected function computesTSFields(array $row) {
+		$local_cObj = t3lib_div::makeInstance('tslib_cObj');
+		$local_cObj->start($row, $this->layer['source']);
+		$generated = array();
+		foreach (self::$tsFields as $field) {
+			$generated[$field] = $local_cObj->TEXT($this->setup[$field]);
+		}
+		return $generated;
+	}
+	
+	/**
+	 * Defines the values of the actions array for the POI.
+	 *
+	 * @param array $row The POI record to transform.
+	 * @param array &$poi The output POI definition.
+	 * @param array $generated The generated content values.
+	 * @return void
+	 */
+	protected function setActions(array $row, array &$poi, array $generated) {
+		if (empty($generated['actions'])) {
+			return;
+		}
+		$actions = explode(',', $generated['actions']);
+		$labels = explode(',', $generated['actions_label']);
+		for ($i = 0; $i < count($actions) && count($poi['actions']) < 4; $i++) {
+			if ($actions[$i] || $labels[$i]) {
+				$poi['actions'][] = array(
+					'uri' => $actions[$i],
+					'label' => $labels[$i],
+				);
+			}
+		}
+	}
+	
+	/**
+	 * Defines the value of the required fields for the POI.
+	 *
+	 * @param array $row The POI record to transform.
+	 * @param array &$poi The output POI definition.
+	 * @param array $generated The generated content values.
+	 * @return void
+	 */
+	protected function setOptionalFields(array $row, array &$poi, array $generated) {
+		foreach (array(
+			'attribution',
+			'line2',
+			'line3',
+			'line4',
+		) as $field) {
+			if ($generated[$field]) {
+				$poi[$field] = $generated[$field];
+			}
+		}
 		if (!empty($this->layer['image']))
 		{
-			if (preg_match('/^[A-Z0-9_-]+$/i', $this->layer['image']))
+			if (isset($row[$this->layer['image']])) {
 				$image = $row[$this->layer['image']];
-			else
+				if (!empty($image)) {
+					t3lib_div::loadTCA($this->layer['source']);
+					if (!empty($GLOBALS['TCA'][$this->layer['source']]['columns'][$this->layer['image']]['config']['uploadfolder'])) {
+						$image = $GLOBALS['TCA'][$this->layer['source']]['columns'][$this->layer['image']]['config']['uploadfolder'] . '/' . $image;
+					}
+				}
+			}
+			else {
 				$image = $this->layer['image'];
-			// TODO: parse image url
+			}
+			if (!empty($image)) {
+				$url = parse_url($image);
+				if (!isset($url['scheme'])) {
+					if ($url['path']{0} == '/') {
+						$image = t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') . $url['path'];
+					}
+					else {
+						$image = t3lib_div::getIndpEnv('TYPO3_SITE_URL') . $url['path'];
+					}
+				}
+				$poi['imageURL'] = $image;
+			}
 		}
-		// TODO: The other fields
-		$poi['distance'] = round(6378.137 * acos(cos(deg2rad($row['center_lat'])) * cos(deg2rad($poi['lat'])) * cos(deg2rad($row['center_lon']) - deg2rad($poi['lon'])) + sin(deg2rad($row['center_lat'])) * sin(deg2rad($poi['lat']))));
-		return $poi;
 	}
 }
 

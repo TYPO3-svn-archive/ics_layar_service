@@ -1,4 +1,13 @@
 
+2011-12-02 Pierrick Caillon <pierrick@in-cite.net>
+	* Feature: Now using enableFields() instead of hardcoded display condition.
+	* Feature: Now supports range crossing -180 and 180 degrees bondaries.
+	* Feature: Now supports range near maximum latitudes.
+	* Feature: Implemented TS parsing for line, attribution and actions fields.
+	* Feature: Now supports image URL.
+	* Refactoring: Prepared version support.
+	* Release of version 0.2.0 beta.
+
 2011-12-01 Pierrick Caillon <pierrick@in-cite.net>
 	* Refactoring: Added $Id comments for SVN version.
 	* Refactoring: Added phpdoc.

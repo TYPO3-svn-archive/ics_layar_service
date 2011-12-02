@@ -3,6 +3,8 @@
 	<meta type="array">
 		<type>database</type>
 		<description>Language labels for database tables/fields belonging to extension 'ics_layar_service'</description>
+		<labelContext type="array">
+		</labelContext>
 	</meta>
 	<data type="array">
 		<languageKey index="default" type="array">
@@ -11,15 +13,18 @@
 			<label index="tx_icslayarservice_sources.source">Source table name</label>
 			<label index="tx_icslayarservice_sources.page">Records source page</label>
 			<label index="tx_icslayarservice_sources.title">Title field name</label>
-			<label index="tx_icslayarservice_sources.line2_ts">Typoscript for line 2</label>
-			<label index="tx_icslayarservice_sources.line3_ts">Typoscript for line 3</label>
-			<label index="tx_icslayarservice_sources.line4_ts">Typoscript for line 4</label>
-			<label index="tx_icslayarservice_sources.attribution_ts">Typoscript for attribution</label>
-			<label index="tx_icslayarservice_sources.actions">Action field names</label>
-			<label index="tx_icslayarservice_sources.actions_label">Action label field names</label>
+			<label index="tx_icslayarservice_sources.line2_ts">TypoScript for line 2</label>
+			<label index="tx_icslayarservice_sources.line3_ts">TypoScript for line 3</label>
+			<label index="tx_icslayarservice_sources.line4_ts">TypoScript for line 4</label>
+			<label index="tx_icslayarservice_sources.attribution_ts">TypoScript for attribution</label>
+			<label index="tx_icslayarservice_sources.actions_ts">TypoScript for actions' URIs</label>
+			<label index="tx_icslayarservice_sources.actions_label_ts">TypoScript for actions' labels</label>
 			<label index="tx_icslayarservice_sources.image">Image field name or path</label>
 			<label index="tx_icslayarservice_sources.type">Type field name or value</label>
 			<label index="tx_icslayarservice_sources.coordinates">Coordinates field name(s)</label>
+			<label index="div.CIW">Circular Info Widget</label>
+			<label index="div.BIW">Brief Info Widget</label>
+			<label index="div.actions">Actions</label>
 		</languageKey>
 	</data>
 	<orig_hash type="array">

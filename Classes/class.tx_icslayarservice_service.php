@@ -47,6 +47,7 @@ class tx_icslayarservice_service {
 		'pageKey' => 'pageKey',
 		'countryCode' => 'country',
 		'lang' => 'lang',
+		'version' => 'version',
 	);
 
 	/**
@@ -57,7 +58,7 @@ class tx_icslayarservice_service {
 	 */
 	public function init() {
 		$this->settings = array();
-		foreach ($self::$params as $get => $var) {
+		foreach (self::$params as $get => $var) {
 			$this->settings[$var] = t3lib_div::_GET($get);
 		}
 
@@ -65,13 +66,14 @@ class tx_icslayarservice_service {
 		$GLOBALS['TSFE'] = $TSFE;
 		$TSFE->connectToDB();
 		$TSFE->initFEuser();
-		$TSFE->getCompressedTCarray();
 		$TSFE->sys_page = t3lib_div::makeInstance('t3lib_pageSelect');
 		$TSFE->sys_page->init(false);
+		$TSFE->getCompressedTCarray();
 		$TSFE->initTemplate();
 		$TSFE->lang = $this->settings['lang'] ? strtolower($this->settings['lang']) : 'default';
-		$TSFE->renderCharset = $this->csConvObj->parse_charset($GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] ? $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] : $TSFE->defaultCharSet);
+		$TSFE->renderCharset = $TSFE->csConvObj->parse_charset($GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] ? $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] : $TSFE->defaultCharSet);
 		$TSFE->metaCharset = $this->renderCharset;
+		$TSFE->newCObj();
 	}
 	
 	/**
@@ -103,46 +105,80 @@ class tx_icslayarservice_service {
 		);
 		// Ask next page use case.
 		if (!empty($this->pageKey)) {
-			$pager = t3lib_div::makeInstance('tx_icslayarservice_pager');
-			if ($pager->load($this->pageKey)) {
-				// Valid pageKey.
+			$this->_readPage($result);
+		}
+		// Ask layer data use case.
+		else {
+			$this->_loadPOIs($result);
+		}
+		$content = json_encode($result/*, JSON_HEX_TAG*/);
+		return $content;
+	}
+
+	/**
+	 * Builds result from a saved page.
+	 *
+	 * @param array &$result The result array to modify.
+	 * @return void
+	 */
+	private function _readPage(array &$result) {
+		$pager = t3lib_div::makeInstance('tx_icslayarservice_pager');
+		if ($pager->load($this->pageKey)) {
+			// Valid pageKey.
+			$result['hotspots'] = $pager->getPage();
+			$result['nextPageKey'] = $pager->getKey();
+			$result['morePages'] = $result['nextPageKey'] != '';
+		}
+		else {
+			// Unknown pageKey.
+			$result['errorCode'] = 29;
+			$result['errorString'] = 'Page key invalid';
+		}
+	}
+	
+	/**
+	 * Builds result for a new request.
+	 *
+	 * @param array &$result The result array to modify.
+	 * @return void
+	 */
+	private function _loadPOIs(array &$result) {
+		if ($source = $this->_openSource()) {
+			// Valid layer.
+			$source->setFilter($this->latitude, $this->longitude, $this->range); // TODO: Custom filters support.
+			$pois = $source->getPOIs();
+			if (!empty($pois)) {
+				$pager = t3lib_div::makeInstance('tx_icslayarservice_pager');
+				$pager->start($pois);
 				$result['hotspots'] = $pager->getPage();
 				$result['nextPageKey'] = $pager->getKey();
 				$result['morePages'] = $result['nextPageKey'] != '';
 			}
 			else {
-				// Unknown pageKey.
-				$result['errorCode'] = 29;
-				$result['errorString'] = 'Page key invalid';
+				// Empty result. Do nothing.
 			}
 		}
-		// Ask layer data use case.
 		else {
-			$source = t3lib_div::makeInstance('tx_icslayarservice_source');
-			$source->init();
-			if ($source->loadLayer($this->layer)) {
-				// Valid layer.
-				$source->setFilter($this->latitude, $this->longitude, $this->range);
-				$pois = $source->getPOIs();
-				if (!empty($pois)) {
-					$pager = t3lib_div::makeInstance('tx_icslayarservice_pager');
-					$pager->start($pois);
-					$result['hotspots'] = $pager->getPage();
-					$result['nextPageKey'] = $pager->getKey();
-					$result['morePages'] = $result['nextPageKey'] != '';
-				}
-				else {
-					// Empty result. Do nothing.
-				}
-			}
-			else {
-				// Unknown layer.
-				$result['errorCode'] = 20;
-				$result['errorString'] = 'The layer name is not known.';
-			}
+			// Unknown layer.
+			$result['errorCode'] = 20;
+			$result['errorString'] = 'The layer name is not known.';
 		}
-		$content = json_encode($result/*, JSON_HEX_TAG*/);
-		return $content;
+	}
+	
+	/**
+	 * Instanciates a source class for the requested layer.
+	 *
+	 * @return tx_icslayarservice_source The source instance.
+	 */
+	private function _openSource() {
+		try {
+			// TODO: Version support (v2.1 - 5.0 source and v6.0+ sources)
+			$source = t3lib_div::makeInstance('tx_icslayarservice_source', $this->layer);
+			return $source;
+		}
+		catch (Exception $e) {
+			return false;
+		}
 	}
 
 	/**

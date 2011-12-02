@@ -34,22 +34,14 @@
  */
 class tx_icslayarservice_source {
 	/**
-	 * Initializes the source. Nothing to do.
-	 *
-	 * @return void
-	 */
-	public function init() {
-		$GLOBALS['TSFE'] = new stdClass();
-	}
-
-	/**
-	 * Loads a layer definition from name.
+	 * Constructs the source with the specified layer definition from name.
 	 *
 	 * @param string $layer The name of the layer to load.
-	 * @return boolean The success of the operation.
+	 * @return void
+	 * @throws Exception if layer not found.
 	 */
-	public function loadLayer($layer) {
-		global $TCA;
+	public function __construct($layer) {
+		global $TCA, $TYPO3_DB;
 		t3lib_div::loadTCA('tx_icslayarservice_sources');
 		$lang = t3lib_div::_GET('L');
 		if (empty($lang) || !is_numeric($lang)) {
@@ -57,76 +49,29 @@ class tx_icslayarservice_source {
 		}
 		// TODO: Change language overlay computation.
 		$rows = $TYPO3_DB->exec_SELECTgetRows(
-			'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
+			'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions_ts`, `actions_label_ts`, `image`, `type`, `coordinates`',
 			'`tx_icslayarservice_sources`',
 			'`name` = ' . $TYPO3_DB->fullQuoteStr($layer, 'tx_icslayarservice_sources') . ' ' .
 			'AND `sys_language_uid` IN (-1, 0) ' .
-			'AND `hidden` = 0 AND `deleted` = 0',
-			'',
-			'',
+			$GLOBALS['TSFE']->cObj->enableFields('tx_icslayarservice_sources'),
 			'',
 			'sys_language_uid'
 		);
 		if (!empty($rows)) {
-			if (isset($rows[$lang])) {
-				$this->layer = $rows[$lang];
-				$rows = $TYPO3_DB->exec_SELECTgetRows(
-					'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
-					'`tx_icslayarservice_sources`',
-					'`uid` = ' . $this->layer['l10n_parent'] . ' ' .
-					'AND `hidden` = 0 AND `deleted` = 0',
-					'',
-					'',
-					'1'
-				);
-				if (!empty($rows)) {
-					foreach ($rows[0] as $field => $value) {
-						$mode = $TCA['tx_icslayarservice_sources']['columns'][$field]['l10n_mode'];
-						if (($mode != 'exclude') &&
-							(($mode != 'mergeIfNotBlank') || strcmp(trim($this->layer[$field]), '')))
-							$rows[0][$field] = $this->layer[$field];
-					}
-					$this->layer = $rows[0];
-				}
-			}
-			elseif (isset($rows['-1'])) {
-				$this->layer = $rows['-1'];
-			}
-			else {
-				$this->layer = $rows['0'];
-			}
-			if (($this->layer['sys_language_uid'] <= 0) && ($lang > 0)) {
-				$rows = $TYPO3_DB->exec_SELECTgetRows(
-					'`uid`, `sys_language_uid`, `l10n_parent`, `name`, `source`, `page`, `title`, `line2_ts`, `line3_ts`, `line4_ts`, `attribution_ts`, `actions`, `actions_label`, `image`, `type`, `coordinates`',
-					'`tx_icslayarservice_sources`',
-					'`l10n_parent` = ' . $this->layer['uid'] . ' ' .
-					'AND `sys_language_uid` IN (' . $lang . ') ' .
-					'AND `hidden` = 0 AND `deleted` = 0',
-					'',
-					'',
-					'1'
-				);
-				if (!empty($rows)) {
-					foreach ($this->layer as $field => $value) {
-						$mode = $TCA['tx_icslayarservice_sources']['columns'][$field]['l10n_mode'];
-						if (($mode != 'exclude') &&
-							(($mode != 'mergeIfNotBlank') || strcmp(trim($rows[0][$field]), '')))
-							$this->layer[$field] = $rows[0][$field];
-					}
-				}
-			}
+			t3lib_div::loadTCA('tx_icslayarservice_sources');
+			$this->layer = $GLOBALS['TSFE']->sys_page->getRecordOverlay('tx_icslayarservice_sources', $rows[0], $lang);
 		}
 		if ($this->layer) {
 			foreach ($TCA['tx_icslayarservice_sources']['columns'] as $field => $conf) {
 				$required = ($conf['config']['minitems'] > 0) ||
 					(in_array('required', t3lib_div::trimExplode(',', $conf['config']['eval'], true)));
 				if ($required && !strcmp($this->layer[$field], '')) {
-					return false;
+					throw new Exception('Invalid Layer.');
 				}
 			}
-			return true;
 		}
-		return false;
+		else
+			throw new Exception('Layer could not be found.');
 	}
 
 	/**
@@ -156,7 +101,10 @@ class tx_icslayarservice_source {
 		$coordAccess = array();
 		switch (count($coords)) {
 			case 1:
-				// TODO: Case when the coordinates are in the same field.
+				$coordAccess = array(
+					'SUBSTRING_INDEX(' . $coords[0] . ', \',\', 1)',
+					'SUBSTRING_INDEX(' . $coords[0] . ', \',\', -1)',
+				);
 				break;
 			case 2:
 				$coordAccess = $coords;
@@ -164,27 +112,80 @@ class tx_icslayarservice_source {
 			default:
 				return array();
 		}
-		$alphaRange = rad2deg($this->range / 6378137);
-		// TODO: When the latitude go below -90 or above 90.
-		$box = '((' . $coordAccess[0] . ' BETWEEN ' . ($this->latitude - $alphaRange) . ' AND ' . ($this->latitude + $alphaRange) . ') '.
-		// TODO: When the longitude go below -180 or above 180.
-			' AND (' . $coordAccess[1] . ' BETWEEN ' . ($this->longitude - $alphaRange) . ' AND ' . ($this->longitude + $alphaRange) . ')) ';
+		$alphaRange = rad2deg($this->range / 6378137); // TODO: Custom filters support. // TODO: Search only default and all languages.
+		$box = '(' . implode(' AND ', array(
+				$this->_makeRangeCriteria($coordAccess[0], $this->latitude - $alphaRange, $this->latitude + $alphaRange, -90, 90, false),
+				$this->_makeRangeCriteria($coordAccess[1], $this->longitude - $alphaRange, $this->longitude + $alphaRange, -180, 180, true),
+			)) . ') ';
 		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 			'*, ' . $this->latitude . ' AS center_lat, ' . $this->longitude . ' AS center_lon',
 			$table,
-			// TODO: Use cObj->enableFields.
-			(($pid) ? ('pid = ' . $pid . ' AND ') : ('')) . $box . ' AND hidden = 0 AND deleted = 0'
+			(($pid) ? ('pid = ' . $pid . ' AND ') : ('')) . $box . $GLOBALS['TSFE']->cObj->enableFields($table)
 		);
 		if (empty($rows)) {
 			return array();
 		}
-		$transformation = t3lib_div::makeInstance('tx_icslayarservice_transformation');
-		$transformation->init($this->layer);
+		// TODO: Version suppport.
+		$transformation = t3lib_div::makeInstance('tx_icslayarservice_transformation', $this->layer);
 		$pois = array();
-		foreach ($rows as $row) {
+		foreach ($rows as $row) {// TODO: localization support for each row.
 			$pois[] = $transformation->transformPOI($row);
 		}
 		return $pois;
+	}
+	
+	/**
+	 * Buils a SQL criteria for the specified values limited to their ranges.
+	 *
+	 * @param string $field The SQL field definition to use. Not protected. Can be an expression.
+	 * @param double $from The searched range lower value.
+	 * @param double $to The searched range upper value.
+	 * @param double $min The searched values range lower bound.
+	 * @param double $max The searched values range upper bound.
+	 * @param boolean $normalize Wheither to do a normalization on the searched values. See remarks.
+	 * @return array All the requested POIs.
+	 * @remarks
+	 * If $normalize is true, $from and $to values are passed through _normalize().
+	 * If $normalize is false, $min and $max are sets as the boundaries values for $from and $to.
+	 */
+	private function _makeRangeCriteria($field, $from, $to, $min, $max, $normalize) {
+		if ($normalize) {
+			$from = $this->_normalize($from, $min, $max);
+			$to = $this->_normalize($to, $min, $max);
+		}
+		else {
+			$from = max($min, min($max, $from));
+			$to = max($min, min($max, $to));
+		}
+		if ($from == $to) {
+			return '(' . $field . ' = ' . $from . ')';
+		}
+		else if ($from < $to) {
+			return '(' . $field . ' BETWEEN ' . $from . ' AND ' . $to . ')';
+		}
+		else {
+			return '((' . $field . ' BETWEEN ' . $min . ' AND ' . $to . ') OR ' .
+				'(' . $field . ' BETWEEN ' . $from . ' AND ' . $max . '))';
+		}
+	}
+
+	/**
+	 * Normalizes a value to the specified range.
+	 *
+	 * @param double $value The value to normalize.
+	 * @param double $min The range lower bound.
+	 * @param double $max The range upper upper.
+	 * @return double The normalized value.
+	 */
+	private function _normalize($value, $min, $max) {
+		$range = $max - $min;
+		while ($value < $min) {
+			$value += $range;
+		}
+		while ($value > $max) {
+			$value -= $range;
+		}
+		return $value;
 	}
 }
 
